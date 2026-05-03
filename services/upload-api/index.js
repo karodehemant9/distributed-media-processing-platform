@@ -8,6 +8,12 @@ const path = require("path");
 
 const logger = require("../../shared/logger");
 
+const connectRabbit = require("../../shared/events/rabbitmq");
+
+const { EXCHANGES } = require("../../shared/events/constants");
+
+let channel;
+
 const app = express();
 
 app.post(
@@ -42,15 +48,37 @@ app.post(
       "end",
 
       () => {
-        logger.info({
-          message: "Upload complete",
-        });
+        channel.publish(
+          EXCHANGES.MEDIA_FANOUT,
 
-        res.send("uploaded");
+          "",
+
+          Buffer.from(
+            JSON.stringify({
+              fileName,
+            }),
+          ),
+        );
       },
     );
   },
 );
+
+(async () => {
+  const connection = await connectRabbit();
+
+  channel = await connection.createChannel();
+
+  await channel.assertExchange(
+    EXCHANGES.MEDIA_FANOUT,
+
+    "fanout",
+
+    {
+      durable: true,
+    },
+  );
+})();
 
 app.listen(
   process.env.PORT,
