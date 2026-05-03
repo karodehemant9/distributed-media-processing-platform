@@ -10,6 +10,10 @@
     "virus": "node services/rabbitmq-workers/virus-worker/index.js",
     "retry-setup": "node services/rabbitmq-workers/setup-retry.js",
     "dlq": "node services/rabbitmq-workers/dlq-worker.js",
-    "kafka-setup": "node shared/kafka/setup-topics.js"
+    "kafka-setup": "node shared/kafka/setup-topics.js",
+    "analytics": "node services/kafka-consumers/analytics/index.js",
+    "audit": "node services/kafka-consumers/audit/index.js",
+    "retry-consumer": "node services/kafka-consumers/retry/index.js",
+    "dlq-consumer": "node services/kafka-consumers/dlq/index.js"
   }
 }
