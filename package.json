@@ -1,19 +1,60 @@
 {
   "name": "distributed-media-processing-platform",
+
   "version": "1.0.0",
+
+  "description": "Distributed media processing platform using Node.js, RabbitMQ, Kafka, streams, BullMQ patterns, retries, DLQ and event-driven architecture",
+
+  "main": "services/upload-api/index.js",
+
   "scripts": {
+
+    "start": "node services/upload-api/index.js",
+
+    "dev": "nodemon services/upload-api/index.js",
+
     "upload-api": "node services/upload-api/index.js",
-    "upload-api:dev": "nodemon services/upload-api/index.js",
+
     "validator": "node services/rabbitmq-workers/validator-worker/index.js",
+
     "thumbnail": "node services/rabbitmq-workers/thumbnail-worker/index.js",
+
     "compression": "node services/rabbitmq-workers/compression-worker/index.js",
+
     "virus": "node services/rabbitmq-workers/virus-worker/index.js",
+
     "retry-setup": "node services/rabbitmq-workers/setup-retry.js",
+
     "dlq": "node services/rabbitmq-workers/dlq-worker.js",
+
     "kafka-setup": "node shared/kafka/setup-topics.js",
+
     "analytics": "node services/kafka-consumers/analytics/index.js",
+
     "audit": "node services/kafka-consumers/audit/index.js",
+
     "retry-consumer": "node services/kafka-consumers/retry/index.js",
+
     "dlq-consumer": "node services/kafka-consumers/dlq/index.js"
+  },
+
+  "dependencies": {
+
+    "amqplib": "^0.10.0",
+
+    "dotenv": "^17.0.0",
+
+    "express": "^5.0.0",
+
+    "kafkajs": "^2.2.4",
+
+    "uuid": "^11.0.0",
+
+    "winston": "^3.17.0"
+  },
+
+  "devDependencies": {
+
+    "nodemon": "^3.0.0"
   }
 }
