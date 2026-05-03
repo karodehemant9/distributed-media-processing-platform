@@ -9,21 +9,9 @@ async function start() {
 
   const channel = await connection.createChannel();
 
-  await channel.assertExchange(
-    EXCHANGES.MEDIA_FANOUT,
-
-    "fanout",
-  );
+  channel.prefetch(1);
 
   await channel.assertQueue(QUEUES.VIRUS);
-
-  await channel.bindQueue(
-    QUEUES.VIRUS,
-
-    EXCHANGES.MEDIA_FANOUT,
-
-    "",
-  );
 
   channel.consume(
     QUEUES.VIRUS,
@@ -31,13 +19,65 @@ async function start() {
     (message) => {
       const event = JSON.parse(message.content.toString());
 
+      event.retryCount ||= 0;
+
       logger.info({
         worker: "virus",
 
         file: event.fileName,
       });
 
-      channel.ack(message);
+      const failed = Math.random() < 0.4;
+
+      if (failed) {
+        event.retryCount++;
+
+        if (event.retryCount >= 3) {
+          channel.publish(
+            EXCHANGES.DLX,
+
+            "failed",
+
+            Buffer.from(JSON.stringify(event)),
+          );
+
+          logger.error({
+            message: "Moved to DLQ",
+
+            event,
+          });
+        } else {
+          channel.sendToQueue(
+            QUEUES.RETRY,
+
+            Buffer.from(JSON.stringify(event)),
+          );
+
+          logger.warn({
+            message: "Retrying later",
+
+            event,
+          });
+        }
+
+        channel.ack(message);
+
+        return;
+      }
+
+      setTimeout(
+        () => {
+          logger.info({
+            message: "Virus scan complete",
+
+            event,
+          });
+
+          channel.ack(message);
+        },
+
+        2000,
+      );
     },
   );
 }

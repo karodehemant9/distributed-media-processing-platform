@@ -1,6 +1,8 @@
 module.exports = {
   EXCHANGES: {
     MEDIA_FANOUT: "media.fanout",
+
+    DLX: "media.dlx",
   },
 
   QUEUES: {
@@ -11,5 +13,9 @@ module.exports = {
     COMPRESSION: "compression.queue",
 
     VIRUS: "virus.queue",
+
+    RETRY: "media.retry.queue",
+
+    DLQ: "media.dlq",
   },
 };
