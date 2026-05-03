@@ -1,5 +1,12 @@
 const connectRabbit = require("../../../shared/events/rabbitmq");
 
+const {
+  producer,
+  connect: connectKafka,
+} = require("../../../shared/kafka/producer");
+
+const { TOPICS } = require("../../../shared/kafka/constants");
+
 const logger = require("../../../shared/logger");
 
 const { EXCHANGES, QUEUES } = require("../../../shared/events/constants");
@@ -7,11 +14,19 @@ const { EXCHANGES, QUEUES } = require("../../../shared/events/constants");
 async function start() {
   const connection = await connectRabbit();
 
+  await connectKafka();
+
   const channel = await connection.createChannel();
 
   channel.prefetch(1);
 
   await channel.assertQueue(QUEUES.THUMBNAIL);
+
+  await channel.assertExchange(EXCHANGES.MEDIA_FANOUT, "fanout", {
+    durable: true,
+  });
+
+  await channel.bindQueue(QUEUES.THUMBNAIL, EXCHANGES.MEDIA_FANOUT, "");
 
   channel.consume(
     QUEUES.THUMBNAIL,
@@ -37,7 +52,6 @@ async function start() {
             EXCHANGES.DLX,
 
             "failed",
-
             Buffer.from(JSON.stringify(event)),
           );
 
@@ -66,7 +80,31 @@ async function start() {
       }
 
       setTimeout(
-        () => {
+        async () => {
+          try {
+            await producer.send({
+              topic: TOPICS.MEDIA_EVENTS,
+
+              messages: [
+                {
+                  key: event.fileName,
+
+                  value: JSON.stringify({
+                    eventId: Date.now().toString(),
+
+                    type: "thumbnail.created",
+
+                    fileName: event.fileName,
+                  }),
+                },
+              ],
+            });
+
+            console.log("Sent to Kafka");
+          } catch (error) {
+            console.error("Kafka send failed:", error.message);
+          }
+
           logger.info({
             message: "Thumbnail generated",
 
