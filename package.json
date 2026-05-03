@@ -1,0 +1,8 @@
+{
+  "name": "distributed-media-processing-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "upload-api": "node services/upload-api/index.js",
+    "upload-api:dev": "nodemon services/upload-api/index.js"
+  }
+}
